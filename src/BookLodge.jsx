@@ -2169,7 +2169,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
               src="/booklodge-logo.png" 
               alt="The Book Lodge" 
               style={{
-                height: '110px',
+                height: '220px',
                 width: 'auto',
                 objectFit: 'contain'
               }}
