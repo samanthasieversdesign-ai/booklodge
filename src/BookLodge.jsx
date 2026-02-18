@@ -1337,7 +1337,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
           background: rgba(10, 10, 10, 0.95);
           backdrop-filter: blur(10px);
           border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-          padding: 1.5rem 2rem;
+          padding: 1rem 2rem;
           z-index: 1000;
         }
 
@@ -2169,7 +2169,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
               src="/booklodge-logo.png" 
               alt="The Book Lodge" 
               style={{
-                height: '65px',
+                height: '110px',
                 width: 'auto',
                 objectFit: 'contain'
               }}
