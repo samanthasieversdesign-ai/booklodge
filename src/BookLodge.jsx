@@ -615,7 +615,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
   };
 
   // Sign In handler
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     setSignInError('');
     if (!signInData.email.trim() || !signInData.password.trim()) {
       setSignInError('Please enter your email and password.');
