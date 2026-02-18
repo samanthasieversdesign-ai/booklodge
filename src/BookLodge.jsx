@@ -120,6 +120,9 @@ const BookLodgeApp = () => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  // Mobile menu state
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
   // Sign In modal state
   const [showSignIn, setShowSignIn] = useState(false);
   const [signInData, setSignInData] = useState({ email: '', password: '' });
@@ -1390,6 +1393,13 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
           border-bottom: 2px solid transparent;
           text-transform: uppercase;
           white-space: nowrap;
+          user-select: none;
+          outline: none;
+          -webkit-user-select: none;
+        }
+
+        .nav-link:focus {
+          outline: none;
         }
 
         .nav-link:hover,
@@ -2095,7 +2105,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
 
           .header-content {
             flex-direction: column;
-            align-items: flex-start;
+            align-items: center;
             gap: 0.5rem;
           }
 
@@ -2108,26 +2118,15 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
           }
 
           .branding img {
-            height: 48px;
+            height: 80px;
           }
 
           .nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.25rem 0.5rem;
-            margin-top: 0.5rem;
-            width: 100%;
-          }
-          
-          .nav-link {
-            font-size: 0.72rem;
-            padding: 0.3rem 0.6rem;
-            letter-spacing: 0.05em;
-            white-space: nowrap;
+            display: none;
           }
 
           .content {
-            padding-top: 150px;
+            padding-top: 160px;
           }
           
           .message.user {
@@ -2158,6 +2157,78 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
           .guest-room {
             padding: 1.5rem 1rem;
           }
+
+          .hamburger-btn {
+            display: block;
+          }
+        }
+
+        /* Hamburger button - hidden on desktop */
+        .hamburger-btn {
+          display: none;
+          background: transparent;
+          border: 1px solid rgba(212, 175, 55, 0.4);
+          border-radius: 6px;
+          padding: 0.4rem 0.7rem;
+          cursor: pointer;
+          color: #D4AF37;
+          font-size: 1.3rem;
+          line-height: 1;
+          position: absolute;
+          top: 1rem;
+          left: 1rem;
+        }
+
+        /* Full-screen mobile menu */
+        .mobile-menu {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(10, 10, 10, 0.97);
+          z-index: 2000;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 0;
+        }
+
+        .mobile-menu.open {
+          display: flex;
+        }
+
+        .mobile-menu-link {
+          font-family: 'Cinzel', serif;
+          font-size: 1.4rem;
+          color: #D4AF37;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          cursor: pointer;
+          padding: 1.2rem 2rem;
+          border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+          width: 80%;
+          text-align: center;
+          transition: all 0.3s ease;
+          user-select: none;
+        }
+
+        .mobile-menu-link:active {
+          background: rgba(212, 175, 55, 0.1);
+        }
+
+        .mobile-menu-close {
+          position: absolute;
+          top: 1.5rem;
+          right: 1.5rem;
+          background: transparent;
+          border: none;
+          color: #D4AF37;
+          font-size: 2rem;
+          cursor: pointer;
+          line-height: 1;
+          padding: 0.5rem;
         }
       `}</style>
 
@@ -2296,7 +2367,21 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
               Library
             </a>
           </div>
+
+          {/* Hamburger button - mobile only */}
+          <button className="hamburger-btn" onClick={() => setShowMobileMenu(true)}>
+            ☰
+          </button>
         </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      <div className={`mobile-menu ${showMobileMenu ? 'open' : ''}`}>
+        <button className="mobile-menu-close" onClick={() => setShowMobileMenu(false)}>✕</button>
+        <div className="mobile-menu-link" onClick={() => { setCurrentRoom(0); setShowMobileMenu(false); }}>Concierge</div>
+        <div className="mobile-menu-link" onClick={() => { setCurrentRoom(1); setShowMobileMenu(false); }}>Guest Room</div>
+        <div className="mobile-menu-link" onClick={() => { setCurrentRoom(2); setShowMobileMenu(false); }}>Fireside Lounge</div>
+        <div className="mobile-menu-link" onClick={() => { setCurrentRoom(3); setShowMobileMenu(false); }}>Library</div>
       </div>
 
       {/* Main Content */}
