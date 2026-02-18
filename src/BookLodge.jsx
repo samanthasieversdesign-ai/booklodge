@@ -401,24 +401,61 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
   };
 
 const handleReservationComplete = async () => {
-    if (!reservationData.name || !reservationData.email || !reservationData.password) return;
-    
-    const newUser = {
-      ...reservationData,
-      id: Date.now(),
-      createdAt: new Date().toISOString(),
-      trialStartDate: new Date().toISOString(),
-      isPaid: false,
-      room: roomData
-    };
-    
-    localStorage.setItem('bookLodgeUser', JSON.stringify(newUser));
-    setUser(newUser);
-    setTrialDaysRemaining(TRIAL_DAYS);
-    setShowReservation(false);
-    setReservationStep(0);
-    // Take them to Guest Room after signup
-    setCurrentRoom(1);
+  if (!reservationData.name || !reservationData.email || !reservationData.password) return;
+
+    try {
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: reservationData.email,
+        password: reservationData.password,
+      });
+
+      if (signUpError) {
+        alert(signUpError.message);
+        return;
+      }
+
+      const userId = authData.user.id;
+
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: userId,
+        name: reservationData.name,
+        email: reservationData.email,
+        user_type: reservationData.userType,
+        pro_role: reservationData.proRole || null,
+        bio: reservationData.bio || null,
+        genres: reservationData.genres || [],
+        themes: reservationData.themes || [],
+        looking_for: reservationData.lookingFor || [],
+        open_to_connect: reservationData.openToConnect ?? true,
+        trial_start_date: new Date().toISOString(),
+        is_paid: false,
+        room_data: roomData,
+      });
+
+      if (profileError) {
+        console.error('Profile save error:', profileError);
+        alert('Account created but profile could not be saved. Please try signing in.');
+        return;
+      }
+
+      const newUser = {
+        id: userId,
+        ...reservationData,
+        trialStartDate: new Date().toISOString(),
+        isPaid: false,
+        room: roomData
+      };
+
+      setUser(newUser);
+      setTrialDaysRemaining(TRIAL_DAYS);
+      setShowReservation(false);
+      setReservationStep(0);
+      setCurrentRoom(1);
+
+    } catch (err) {
+      console.error('Signup error:', err);
+      alert('Something went wrong. Please try again.');
+    }
   };
 
   // Guest Room functions
