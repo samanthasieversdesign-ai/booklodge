@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 
 const BookLodgeApp = () => {
   // Navigation
-  const [currentRoom, setCurrentRoom] = useState(1); // 0 = Concierge, 1 = Guest Room
+  const [currentRoom, setCurrentRoom] = useState(0); // 0 = Concierge, 1 = Guest Room
   
   // AI Companion state
   const [inputValue, setInputValue] = useState('');
@@ -1320,7 +1320,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
         .book-lodge {
           min-height: 100vh;
           background: #0a0a0a;
-          background-image: url('https://i.imgur.com/4rg6rXV.jpeg');
+          background-image: url('/lodge-bg.jpg');
           background-size: cover;
           background-position: center;
           background-attachment: fixed;
@@ -1442,6 +1442,11 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
           color: #E8E8E8;
           letter-spacing: 0.05em;
           margin-bottom: 1rem;
+          white-space: nowrap;
+        }
+
+        .greeting-break {
+          display: inline;
         }
 
         .concierge-intro {
@@ -2085,36 +2090,73 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
 
         @media (max-width: 768px) {
           .header {
-            padding: 1rem;
+            padding: 0.75rem 1rem 0.5rem;
           }
-          
+
+          .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+          }
+
           .logo {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
           }
           
           .tagline {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
           }
-          
+
+          .branding img {
+            height: 48px;
+          }
+
           .nav {
-            gap: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem 0.5rem;
+            margin-top: 0.5rem;
+            width: 100%;
           }
           
           .nav-link {
-            font-size: 0.8rem;
-            padding: 0.3rem 0.5rem;
+            font-size: 0.72rem;
+            padding: 0.3rem 0.6rem;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+          }
+
+          .content {
+            padding-top: 150px;
           }
           
           .message.user {
-            margin-left: 1rem;
+            margin-left: 0.5rem;
           }
           
           .message.assistant {
-            margin-right: 1rem;
+            margin-right: 0.5rem;
           }
           
           .items-grid {
             grid-template-columns: 1fr;
+          }
+
+          .concierge {
+            padding: 1.5rem 1rem;
+          }
+
+          .concierge-greeting {
+            font-size: 1.6rem;
+            white-space: normal;
+          }
+
+          .greeting-break {
+            display: block;
+          }
+
+          .guest-room {
+            padding: 1.5rem 1rem;
           }
         }
       `}</style>
@@ -2123,8 +2165,15 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
       <div className="header">
         <div className="header-content">
           <div className="branding">
-            <div className="logo">THE BOOK LODGE</div>
-            <div className="tagline">Together, let's book better.</div>
+            <img 
+              src="/booklodge-logo.png" 
+              alt="The Book Lodge" 
+              style={{
+                height: '65px',
+                width: 'auto',
+                objectFit: 'contain'
+              }}
+            />
           </div>
           
           {/* Sign In button - shown when logged out */}
@@ -2132,7 +2181,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
             <div style={{
               position: 'absolute',
               top: '1rem',
-              right: '2rem',
+              right: '1rem',
               display: 'flex',
               alignItems: 'center',
               gap: '0.75rem'
@@ -2166,7 +2215,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
             <div style={{
               position: 'absolute',
               top: '1rem',
-              right: '2rem',
+              right: '1rem',
               display: 'flex',
               alignItems: 'center',
               gap: '0.75rem'
@@ -2256,7 +2305,11 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
           <div className="concierge">
             <div className="concierge-header">
               <p className="concierge-welcome">Home to writers, readers, and pros.</p>
-              <h1 className="concierge-greeting">Hello, Lodger. Welcome home.</h1>
+              <h1 className="concierge-greeting">
+                <span style={{whiteSpace: 'nowrap'}}>Hello, Lodger.</span>
+                <span className="greeting-break"> </span>
+                <span style={{whiteSpace: 'nowrap'}}>Welcome Home.</span>
+              </h1>
             </div>
 
             <div className="chat-container">
@@ -2338,23 +2391,24 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
             )}
             
             <p className="concierge-footer">Your Literary Companion</p>
-            
+
             {/* Housekeeping Button */}
             <div style={{
-              position: 'absolute',
-              bottom: '2rem',
-              right: '2rem',
+              textAlign: 'center',
+              marginTop: '1.5rem',
+              paddingBottom: '1rem',
               cursor: 'pointer',
               color: '#D4AF37',
               fontFamily: 'Cinzel',
               letterSpacing: '0.1em',
-              fontSize: '0.9rem',
+              fontSize: '0.85rem',
               textDecoration: 'underline',
-              transition: 'opacity 0.3s ease'
+              transition: 'opacity 0.3s ease',
+              opacity: 0.7
             }}
             onClick={() => setShowFeedback(true)}
-            onMouseEnter={(e) => e.target.style.opacity = '0.7'}
-            onMouseLeave={(e) => e.target.style.opacity = '1'}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
             >
               HOUSEKEEPING
             </div>
