@@ -4084,7 +4084,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
       )}
 
       {/* Share Room Modal */}
-      {showShareRoom && (
+      {showShareRoom && user && (
         <div className="modal-overlay" onClick={() => setShowShareRoom(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '480px', textAlign: 'center'}}>
             <h2 className="modal-title">Share Your Room</h2>
@@ -4102,7 +4102,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
               color: '#D4AF37',
               fontFamily: 'monospace'
             }}>
-              {`${window.location.origin}?room=${encodeURIComponent(user?.name || '')}&invite=true`}
+              {`${window.location.origin}?room=${encodeURIComponent(user.name)}&invite=true`}
             </div>
             <div style={{display: 'flex', gap: '0.75rem', justifyContent: 'center'}}>
               <button className="btn btn-primary" onClick={handleShareRoom}>
@@ -4116,7 +4116,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
         </div>
       )}
 
-        {/* FIRESIDE LOUNGE */}
+      {/* FIRESIDE LOUNGE */}
         {currentRoom === 2 && !user && (
           <div className="guest-room">
             <div className="room-header">
