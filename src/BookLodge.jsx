@@ -400,7 +400,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
     setReservationStep(reservationStep + 1);
   };
 
-  const handleReservationComplete = () => {
+const handleReservationComplete = async () => {
     if (!reservationData.name || !reservationData.email || !reservationData.password) return;
     
     const newUser = {
@@ -615,7 +615,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
   };
 
   // Sign In handler
-  const handleSignIn = async () => {
+  const handleSignIn = () => {
     setSignInError('');
     if (!signInData.email.trim() || !signInData.password.trim()) {
       setSignInError('Please enter your email and password.');
