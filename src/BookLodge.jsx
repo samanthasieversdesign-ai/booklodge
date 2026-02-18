@@ -120,6 +120,20 @@ const BookLodgeApp = () => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  // Book Lists state
+  const [bookLists, setBookLists] = useState(() => {
+    const saved = localStorage.getItem('bookLodgeBookLists');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showAddList, setShowAddList] = useState(false);
+  const [newListName, setNewListName] = useState('');
+  const [activeListId, setActiveListId] = useState(null);
+  const [bookSearch, setBookSearch] = useState('');
+  const [bookSearchResults, setBookSearchResults] = useState([]);
+  const [bookSearchLoading, setBookSearchLoading] = useState(false);
+  const [showShareRoom, setShowShareRoom] = useState(false);
+  const [shareRoomCopied, setShareRoomCopied] = useState(false);
+
   // Mobile detection
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
@@ -659,6 +673,84 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
     setShowForgotPassword(false);
     setForgotEmail('');
     setForgotPasswordStep('form');
+  };
+
+  // Book Lists handlers
+  const saveBookLists = (lists) => {
+    setBookLists(lists);
+    localStorage.setItem('bookLodgeBookLists', JSON.stringify(lists));
+  };
+
+  const handleCreateList = () => {
+    if (!newListName.trim()) return;
+    const newList = {
+      id: Date.now(),
+      name: newListName.trim(),
+      books: [],
+      isPublic: false,
+      createdAt: new Date().toISOString()
+    };
+    const updated = [...bookLists, newList];
+    saveBookLists(updated);
+    setNewListName('');
+    setShowAddList(false);
+    setActiveListId(newList.id);
+  };
+
+  const handleDeleteList = (listId) => {
+    const updated = bookLists.filter(l => l.id !== listId);
+    saveBookLists(updated);
+    if (activeListId === listId) setActiveListId(null);
+  };
+
+  const handleToggleListVisibility = (listId) => {
+    const updated = bookLists.map(l => l.id === listId ? {...l, isPublic: !l.isPublic} : l);
+    saveBookLists(updated);
+  };
+
+  const handleAddBookToList = (listId, book) => {
+    const updated = bookLists.map(l => l.id === listId ? {
+      ...l, books: [...l.books, {...book, id: Date.now(), read: false, addedAt: new Date().toISOString()}]
+    } : l);
+    saveBookLists(updated);
+    setBookSearch('');
+    setBookSearchResults([]);
+  };
+
+  const handleToggleBookRead = (listId, bookId) => {
+    const updated = bookLists.map(l => l.id === listId ? {
+      ...l, books: l.books.map(b => b.id === bookId ? {...b, read: !b.read} : b)
+    } : l);
+    saveBookLists(updated);
+  };
+
+  const handleRemoveBookFromList = (listId, bookId) => {
+    const updated = bookLists.map(l => l.id === listId ? {
+      ...l, books: l.books.filter(b => b.id !== bookId)
+    } : l);
+    saveBookLists(updated);
+  };
+
+  const handleBookSearch = async (query) => {
+    setBookSearch(query);
+    if (query.length < 3) { setBookSearchResults([]); return; }
+    setBookSearchLoading(true);
+    try {
+      const res = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=8&fields=title,author_name,cover_i,key`);
+      const data = await res.json();
+      setBookSearchResults(data.docs || []);
+    } catch {
+      setBookSearchResults([]);
+    }
+    setBookSearchLoading(false);
+  };
+
+  const handleShareRoom = () => {
+    const shareUrl = `${window.location.origin}?room=${encodeURIComponent(user.name)}&invite=true`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setShareRoomCopied(true);
+      setTimeout(() => setShareRoomCopied(false), 3000);
+    });
   };
 
   // Get pricing for user's role
@@ -1320,6 +1412,82 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
           margin: 0;
           padding: 0;
           box-sizing: border-box;
+          /* Remove blinking cursor from non-input elements */
+          caret-color: transparent;
+        }
+
+        input, textarea, [contenteditable] {
+          caret-color: #D4AF37;
+        }
+
+        /* Remove text selection highlight on clickable elements */
+        button, a, [role="button"] {
+          user-select: none;
+          -webkit-user-select: none;
+          outline: none;
+        }
+
+        button:focus, a:focus {
+          outline: none;
+        }
+
+        /* Book Lists */
+        .book-list-section {
+          max-width: 750px;
+          margin: 2rem auto;
+        }
+
+        .book-list-card {
+          background: rgba(20, 20, 20, 0.6);
+          border: 1px solid rgba(212, 175, 55, 0.2);
+          border-radius: 12px;
+          padding: 1.5rem;
+          margin-bottom: 1rem;
+        }
+
+        .book-item {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 0.75rem 0;
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .book-item:last-child {
+          border-bottom: none;
+        }
+
+        .book-cover {
+          width: 36px;
+          height: 52px;
+          object-fit: cover;
+          border-radius: 3px;
+          background: rgba(212, 175, 55, 0.1);
+          flex-shrink: 0;
+        }
+
+        .book-search-results {
+          background: rgba(10, 10, 10, 0.95);
+          border: 1px solid rgba(212, 175, 55, 0.3);
+          border-radius: 8px;
+          margin-top: 0.5rem;
+          overflow: hidden;
+          max-height: 300px;
+          overflow-y: auto;
+        }
+
+        .book-search-result {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.75rem 1rem;
+          cursor: pointer;
+          transition: background 0.2s;
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .book-search-result:hover {
+          background: rgba(212, 175, 55, 0.1);
         }
 
         body {
@@ -2298,40 +2466,43 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
               top: '1rem',
               right: '1rem',
               display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem'
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              gap: '0.4rem'
             }}>
-              <ProfileImage size={30} fontSize="0.85rem" />
-              <div style={{
-                fontFamily: 'Cinzel',
-                fontSize: '0.8rem',
-                color: '#D4AF37',
-                letterSpacing: '0.05em',
-                whiteSpace: 'nowrap'
-              }}>
-                {user.name}
-                {user.isPaid && user.userType === 'pro' && (
-                  <span style={{
-                    marginLeft: '0.5rem',
-                    padding: '0.2rem 0.5rem',
-                    background: 'rgba(212, 175, 55, 0.2)',
-                    border: '1px solid rgba(212, 175, 55, 0.5)',
-                    borderRadius: '4px',
-                    fontSize: '0.65rem'
-                  }}>PRO</span>
-                )}
+              <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                <ProfileImage size={24} fontSize="0.75rem" />
+                <div style={{
+                  fontFamily: 'Cinzel',
+                  fontSize: '0.75rem',
+                  color: '#D4AF37',
+                  letterSpacing: '0.05em',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {user.name}
+                  {user.isPaid && user.userType === 'pro' && (
+                    <span style={{
+                      marginLeft: '0.5rem',
+                      padding: '0.2rem 0.5rem',
+                      background: 'rgba(212, 175, 55, 0.2)',
+                      border: '1px solid rgba(212, 175, 55, 0.5)',
+                      borderRadius: '4px',
+                      fontSize: '0.65rem'
+                    }}>PRO</span>
+                  )}
+                </div>
               </div>
               <button 
                 onClick={handleLogout}
                 style={{
-                  padding: '0.35rem 0.7rem',
+                  padding: '0.25rem 0.6rem',
                   background: 'transparent',
                   border: '1px solid rgba(150, 150, 150, 0.3)',
                   borderRadius: '4px',
                   color: '#C0C0C0',
                   cursor: 'pointer',
                   fontFamily: 'Cinzel',
-                  fontSize: '0.7rem',
+                  fontSize: '0.65rem',
                   letterSpacing: '0.05em',
                   textTransform: 'uppercase',
                   transition: 'all 0.3s ease',
@@ -2461,12 +2632,12 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
               <div className="subscription-status">
                 {trialDaysRemaining !== null && trialDaysRemaining > 0 && !user.isPaid && (
                   <div className="trial-badge">
-                    ✨ {trialDaysRemaining} {trialDaysRemaining === 1 ? 'day' : 'days'} left in your trial • <span style={{cursor: 'pointer', textDecoration: 'underline'}} onClick={() => setShowUpgradeModal(true)}>Become a Lodger</span>
+                    ✨ {trialDaysRemaining} {trialDaysRemaining === 1 ? 'day' : 'days'} left in your trial • <span style={{cursor: 'pointer', textDecoration: 'underline'}} onClick={() => setShowUpgradeModal(true)}>Reserve Your Room</span>
                   </div>
                 )}
                 {trialDaysRemaining === 0 && !user.isPaid && (
                   <div className="trial-expired">
-                    Trial ended • <span style={{cursor: 'pointer', textDecoration: 'underline'}} onClick={() => setShowUpgradeModal(true)}>Become a Lodger</span>
+                    Trial ended • <span style={{cursor: 'pointer', textDecoration: 'underline'}} onClick={() => setShowUpgradeModal(true)}>Reserve Your Room</span>
                   </div>
                 )}
                 {user.isPaid && user.userType !== 'pro' && (
@@ -2669,10 +2840,10 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
                     Your trial has ended
                   </h2>
                   <p style={{color: '#C0C0C0', marginBottom: '2rem', lineHeight: 1.6}}>
-                    Become a Lodger to keep your Guest Room and continue chatting with Wells.
+                    Reserve your room to keep your Guest Room and continue chatting with Wells.
                   </p>
                   <button className="btn btn-primary" onClick={() => setShowUpgradeModal(true)}>
-                    Become a Lodger
+                    Reserve Your Room
                   </button>
                 </div>
               </div>
@@ -2825,9 +2996,14 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
 
                   <div className="room-actions">
                     {!isEditingRoom ? (
-                      <button className="btn" onClick={() => setIsEditingRoom(true)}>
-                        Edit Room
-                      </button>
+                      <>
+                        <button className="btn" onClick={() => setIsEditingRoom(true)}>
+                          Edit Room
+                        </button>
+                        <button className="btn btn-secondary" onClick={() => setShowShareRoom(true)} style={{marginLeft: '0.75rem'}}>
+                          🔗 Share Room
+                        </button>
+                      </>
                     ) : (
                       <>
                         <button className="btn" onClick={handleSaveRoom}>
@@ -3733,11 +3909,212 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
                       </div>
                     )}
                   </div>
-                )}
-              </>
-            )}
+
+                  {/* BOOK LISTS SECTION */}
+                  <div className="book-list-section">
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
+                      <h2 style={{fontFamily: 'Cinzel', fontSize: '1.1rem', color: '#D4AF37', letterSpacing: '0.1em'}}>
+                        MY BOOK LISTS
+                      </h2>
+                      <button
+                        className="btn"
+                        onClick={() => setShowAddList(true)}
+                        style={{fontSize: '0.8rem', padding: '0.4rem 0.9rem'}}
+                      >
+                        + New List
+                      </button>
+                    </div>
+
+                    {/* Create new list input */}
+                    {showAddList && (
+                      <div className="book-list-card" style={{marginBottom: '1rem'}}>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="List name (e.g. Fiction, Nonfiction, Kids...)"
+                          value={newListName}
+                          onChange={(e) => setNewListName(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && handleCreateList()}
+                          autoFocus
+                          style={{marginBottom: '0.75rem'}}
+                        />
+                        <div style={{display: 'flex', gap: '0.5rem'}}>
+                          <button className="btn" onClick={handleCreateList} style={{fontSize: '0.8rem'}}>Create</button>
+                          <button className="btn btn-secondary" onClick={() => { setShowAddList(false); setNewListName(''); }} style={{fontSize: '0.8rem'}}>Cancel</button>
+                        </div>
+                      </div>
+                    )}
+
+                    {bookLists.length === 0 && !showAddList && (
+                      <div style={{textAlign: 'center', padding: '2rem', color: '#888', fontStyle: 'italic'}}>
+                        Create your first book list — track what you've read, want to read, or love.
+                      </div>
+                    )}
+
+                    {bookLists.map(list => (
+                      <div key={list.id} className="book-list-card">
+                        {/* List header */}
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'}}>
+                          <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                            <h3
+                              style={{fontFamily: 'Cinzel', fontSize: '1rem', color: '#E8E8E8', cursor: 'pointer'}}
+                              onClick={() => setActiveListId(activeListId === list.id ? null : list.id)}
+                            >
+                              {list.name}
+                              <span style={{fontSize: '0.75rem', color: '#888', marginLeft: '0.5rem'}}>
+                                ({list.books.length} book{list.books.length !== 1 ? 's' : ''})
+                              </span>
+                            </h3>
+                            <span
+                              className={`visibility-toggle ${list.isPublic ? 'public' : 'private'}`}
+                              onClick={() => handleToggleListVisibility(list.id)}
+                              style={{fontSize: '0.7rem'}}
+                            >
+                              {list.isPublic ? '🌐 Public' : '🔒 Private'}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteList(list.id)}
+                            style={{background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', fontSize: '1rem'}}
+                          >✕</button>
+                        </div>
+
+                        {/* Books in list */}
+                        {activeListId === list.id && (
+                          <>
+                            {list.books.map(book => (
+                              <div key={book.id} className="book-item">
+                                {book.coverUrl ? (
+                                  <img src={book.coverUrl} alt={book.title} className="book-cover" />
+                                ) : (
+                                  <div className="book-cover" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem'}}>📚</div>
+                                )}
+                                <div style={{flex: 1}}>
+                                  <div style={{
+                                    color: book.read ? '#888' : '#E8E8E8',
+                                    textDecoration: book.read ? 'line-through' : 'none',
+                                    fontSize: '0.95rem'
+                                  }}>{book.title}</div>
+                                  {book.author && <div style={{color: '#888', fontSize: '0.8rem'}}>{book.author}</div>}
+                                </div>
+                                <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
+                                  <button
+                                    onClick={() => handleToggleBookRead(list.id, book.id)}
+                                    style={{
+                                      background: book.read ? 'rgba(212,175,55,0.2)' : 'transparent',
+                                      border: '1px solid rgba(212,175,55,0.4)',
+                                      borderRadius: '4px',
+                                      color: '#D4AF37',
+                                      cursor: 'pointer',
+                                      fontSize: '0.75rem',
+                                      padding: '0.2rem 0.5rem',
+                                      whiteSpace: 'nowrap'
+                                    }}
+                                  >
+                                    {book.read ? '✓ Read' : 'Mark Read'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleRemoveBookFromList(list.id, book.id)}
+                                    style={{background: 'transparent', border: 'none', color: '#555', cursor: 'pointer', fontSize: '1rem'}}
+                                  >✕</button>
+                                </div>
+                              </div>
+                            ))}
+
+                            {/* Book search */}
+                            <div style={{marginTop: '1rem'}}>
+                              <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Search for a book to add..."
+                                value={bookSearch}
+                                onChange={(e) => handleBookSearch(e.target.value)}
+                                style={{fontSize: '0.9rem'}}
+                              />
+                              {bookSearchLoading && <div style={{color: '#888', fontSize: '0.85rem', padding: '0.5rem'}}>Searching...</div>}
+                              {bookSearchResults.length > 0 && (
+                                <div className="book-search-results">
+                                  {bookSearchResults.map((result, i) => (
+                                    <div
+                                      key={i}
+                                      className="book-search-result"
+                                      onClick={() => handleAddBookToList(list.id, {
+                                        title: result.title,
+                                        author: result.author_name?.[0] || '',
+                                        coverUrl: result.cover_i ? `https://covers.openlibrary.org/b/id/${result.cover_i}-S.jpg` : null
+                                      })}
+                                    >
+                                      {result.cover_i ? (
+                                        <img
+                                          src={`https://covers.openlibrary.org/b/id/${result.cover_i}-S.jpg`}
+                                          alt={result.title}
+                                          style={{width: '28px', height: '40px', objectFit: 'cover', borderRadius: '2px'}}
+                                        />
+                                      ) : (
+                                        <div style={{width: '28px', height: '40px', background: 'rgba(212,175,55,0.1)', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>📚</div>
+                                      )}
+                                      <div>
+                                        <div style={{color: '#E8E8E8', fontSize: '0.9rem'}}>{result.title}</div>
+                                        {result.author_name?.[0] && <div style={{color: '#888', fontSize: '0.8rem'}}>{result.author_name[0]}</div>}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+
+                        {activeListId !== list.id && list.books.length > 0 && (
+                          <div
+                            style={{color: '#D4AF37', fontSize: '0.8rem', cursor: 'pointer', marginTop: '0.25rem'}}
+                            onClick={() => setActiveListId(list.id)}
+                          >
+                            View books →
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Share Room Modal */}
+      {showShareRoom && (
+        <div className="modal-overlay" onClick={() => setShowShareRoom(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '480px', textAlign: 'center'}}>
+            <h2 className="modal-title">Share Your Room</h2>
+            <p style={{color: '#C0C0C0', marginBottom: '1.5rem', lineHeight: 1.6}}>
+              Invite friends and family to see your room. Anyone who visits via your link will receive a 7-day free trial to join The Book Lodge.
+            </p>
+            <div style={{
+              background: 'rgba(212, 175, 55, 0.08)',
+              border: '1px solid rgba(212, 175, 55, 0.3)',
+              borderRadius: '8px',
+              padding: '1rem',
+              marginBottom: '1.5rem',
+              wordBreak: 'break-all',
+              fontSize: '0.85rem',
+              color: '#D4AF37',
+              fontFamily: 'monospace'
+            }}>
+              {`${window.location.origin}?room=${encodeURIComponent(user?.name || '')}&invite=true`}
+            </div>
+            <div style={{display: 'flex', gap: '0.75rem', justifyContent: 'center'}}>
+              <button className="btn btn-primary" onClick={handleShareRoom}>
+                {shareRoomCopied ? '✓ Copied!' : 'Copy Link'}
+              </button>
+              <button className="btn btn-secondary" onClick={() => setShowShareRoom(false)}>
+                Close
+              </button>
+            </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* FIRESIDE LOUNGE */}
         {currentRoom === 2 && !user && (
@@ -4842,7 +5219,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
       {showUpgradeModal && user && (
         <div className="modal-overlay" onClick={() => setShowUpgradeModal(false)}>
           <div className="modal upgrade-modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">Become a Lodger</h2>
+            <h2 className="modal-title">Reserve Your Room</h2>
             <p className="modal-subtitle">Keep your room and continue your journey</p>
             
             <div className="pricing-box">
