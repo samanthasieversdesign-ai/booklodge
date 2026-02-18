@@ -1355,6 +1355,15 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
           flex-direction: column;
         }
 
+        @media (max-width: 768px) {
+          .branding {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+        }
+
         .logo {
           font-family: 'Cinzel', serif;
           font-size: 1.8rem;
@@ -2366,7 +2375,24 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
           </div>
 
           {/* Hamburger button - mobile only */}
-          <button className="hamburger-btn" onClick={() => setShowMobileMenu(true)}>
+          <button 
+            className="hamburger-btn" 
+            onClick={() => setShowMobileMenu(true)}
+            style={{
+              position: 'fixed',
+              top: '1rem',
+              left: '1rem',
+              zIndex: 1001,
+              background: 'rgba(10,10,10,0.8)',
+              border: '1px solid rgba(212, 175, 55, 0.4)',
+              borderRadius: '6px',
+              padding: '0.4rem 0.7rem',
+              cursor: 'pointer',
+              color: '#D4AF37',
+              fontSize: '1.3rem',
+              lineHeight: 1
+            }}
+          >
             ☰
           </button>
         </div>
