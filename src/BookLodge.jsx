@@ -94,6 +94,9 @@ const BookLodgeApp = () => {
   
   // Guest Room state
   const [isEditingRoom, setIsEditingRoom] = useState(false);
+  const [editCardData, setEditCardData] = useState({
+    genres: [], themes: [], lookingFor: [], bio: ''
+  });
   const [roomData, setRoomData] = useState({
     // Reader features
     favoriteBooks: [],
@@ -131,6 +134,8 @@ const BookLodgeApp = () => {
   const [bookSearch, setBookSearch] = useState('');
   const [bookSearchResults, setBookSearchResults] = useState([]);
   const [bookSearchLoading, setBookSearchLoading] = useState(false);
+  const [showManualBookEntry, setShowManualBookEntry] = useState(null); // listId or null
+  const [manualBook, setManualBook] = useState({ title: '', author: '', coverUrl: '' });
   const [showShareRoom, setShowShareRoom] = useState(false);
   const [shareRoomCopied, setShareRoomCopied] = useState(false);
 
@@ -418,9 +423,15 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
   // Guest Room functions
   const handleSaveRoom = () => {
     console.log('Attempting to save room data...');
-    console.log('Room data:', roomData);
     try {
-      const updatedUser = { ...user, room: roomData };
+      const updatedUser = { 
+        ...user, 
+        room: roomData,
+        genres: editCardData.genres,
+        themes: editCardData.themes,
+        lookingFor: editCardData.lookingFor,
+        bio: editCardData.bio
+      };
       const dataString = JSON.stringify(updatedUser);
       console.log('Data size:', (dataString.length / 1024).toFixed(2) + ' KB');
       localStorage.setItem('bookLodgeUser', dataString);
@@ -729,6 +740,17 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
       ...l, books: l.books.filter(b => b.id !== bookId)
     } : l);
     saveBookLists(updated);
+  };
+
+  const handleAddManualBook = (listId) => {
+    if (!manualBook.title.trim()) return;
+    handleAddBookToList(listId, {
+      title: manualBook.title.trim(),
+      author: manualBook.author.trim(),
+      coverUrl: manualBook.coverUrl.trim() || null
+    });
+    setManualBook({ title: '', author: '', coverUrl: '' });
+    setShowManualBookEntry(null);
   };
 
   const handleBookSearch = async (query) => {
@@ -1492,6 +1514,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
 
         body {
           overflow-x: hidden;
+          overflow-y: scroll;
         }
 
         .book-lodge {
@@ -2997,7 +3020,15 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
                   <div className="room-actions">
                     {!isEditingRoom ? (
                       <>
-                        <button className="btn" onClick={() => setIsEditingRoom(true)}>
+                        <button className="btn" onClick={() => {
+                          setIsEditingRoom(true);
+                          setEditCardData({
+                            genres: user.genres || [],
+                            themes: user.themes || [],
+                            lookingFor: user.lookingFor || [],
+                            bio: user.bio || ''
+                          });
+                        }}>
                           Edit Room
                         </button>
                         <button className="btn btn-secondary" onClick={() => setShowShareRoom(true)} style={{marginLeft: '0.75rem'}}>
@@ -3426,6 +3457,97 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
                           </div>
                         </>
                       )}
+                    </div>
+
+                    {/* Edit Your Card */}
+                    <div className="edit-section">
+                      <h3 className="section-title">Your Connection Card</h3>
+                      <p style={{color: '#C0C0C0', textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem', lineHeight: 1.6}}>
+                        This is how other Lodgers discover and connect with you in the Fireside Lounge.
+                      </p>
+
+                      {/* Bio */}
+                      <div className="form-group">
+                        <label className="form-label">{user.userType === 'writer' ? 'Why You Write' : user.userType === 'reader' ? 'Why You Read' : 'Your Mission'}</label>
+                        <textarea
+                          className="form-textarea"
+                          value={editCardData.bio}
+                          onChange={(e) => setEditCardData({...editCardData, bio: e.target.value})}
+                          placeholder="Share what drives you..."
+                          style={{minHeight: '100px', lineHeight: 1.7}}
+                        />
+                      </div>
+
+                      {/* Genres */}
+                      <div className="form-group">
+                        <label className="form-label">{user.userType === 'reader' ? 'Genres I Love' : 'Genres I Write/Read'}</label>
+                        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem'}}>
+                          {['Literary Fiction', 'Fantasy', 'Sci-Fi', 'Romance', 'Mystery', 'Thriller / Suspense', 'Horror', 'Historical Fiction', 'Contemporary Fiction', 'Dystopian', 'Magical Realism', 'Women\'s Fiction', 'Christian Fiction', 'Faith-Based', 'YA / Teen', 'Middle Grade', 'Children\'s', 'Memoir', 'Biography', 'Self-Help', 'True Crime', 'Narrative Nonfiction', 'Poetry', 'Essay / Creative Nonfiction', 'Short Stories', 'Graphic Novels / Comics', 'Romantasy', 'Cozy Mystery', 'Dark Academia', 'Afrofuturism', 'Westerns', 'Satire / Humor'].map(genre => (
+                            <label key={genre} style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                              <input
+                                type="checkbox"
+                                checked={editCardData.genres.includes(genre)}
+                                onChange={(e) => {
+                                  const updated = e.target.checked
+                                    ? [...editCardData.genres, genre]
+                                    : editCardData.genres.filter(g => g !== genre);
+                                  setEditCardData({...editCardData, genres: updated});
+                                }}
+                              />
+                              <span style={{color: '#C0C0C0', fontSize: '0.9rem'}}>{genre}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Themes */}
+                      <div className="form-group">
+                        <label className="form-label">Themes I'm Interested In</label>
+                        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem'}}>
+                          {['Redemption', 'Good vs Evil', 'Faith & Doubt', 'Grief & Loss', 'Found Family', 'Forbidden Love', 'Coming of Age', 'Identity & Belonging', 'Social Justice', 'Mental Health', 'Slow Burn Romance', 'Enemies to Lovers', 'Chosen One', 'Unreliable Narrator', 'Moral Ambiguity', 'Healing & Recovery', 'Sacrifice', 'Second Chances', 'Power & Corruption', 'Nature & Solitude', 'Cultural Heritage', 'Immigration & Diaspora', 'War & Its Aftermath', 'Spiritual Journey', 'The Sacred & Mundane', 'Motherhood / Fatherhood', 'Friendship', 'Survival', 'Time & Memory', 'Hope Against Odds'].map(theme => (
+                            <label key={theme} style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                              <input
+                                type="checkbox"
+                                checked={editCardData.themes.includes(theme)}
+                                onChange={(e) => {
+                                  const updated = e.target.checked
+                                    ? [...editCardData.themes, theme]
+                                    : editCardData.themes.filter(t => t !== theme);
+                                  setEditCardData({...editCardData, themes: updated});
+                                }}
+                              />
+                              <span style={{color: '#C0C0C0', fontSize: '0.9rem'}}>{theme}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Looking For */}
+                      <div className="form-group">
+                        <label className="form-label">I'm Looking For</label>
+                        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem'}}>
+                          {(user.userType === 'writer'
+                            ? ['Beta Readers', 'Critique Partners', 'Writing Buddies', 'Accountability Partner', 'Cover Designer', 'Developmental Editor', 'Copy Editor', 'Literary Agent', 'Publisher', 'Formatter', 'Sensitivity Reader', 'Book Club']
+                            : user.userType === 'pro'
+                            ? ['Authors Seeking My Services', 'Referral Partners', 'Collaboration Partners', 'Testimonials & Case Studies', 'Speaking & Teaching Opportunities', 'Industry Connections', 'Mentorship Opportunities', 'Writers to Champion']
+                            : ['New Authors to Follow', 'Book Club', 'Reading Buddies', 'ARC / Early Reader Copies', 'Author Events & Signings', 'Behind-the-Scenes Access']
+                          ).map(need => (
+                            <label key={need} style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                              <input
+                                type="checkbox"
+                                checked={editCardData.lookingFor.includes(need)}
+                                onChange={(e) => {
+                                  const updated = e.target.checked
+                                    ? [...editCardData.lookingFor, need]
+                                    : editCardData.lookingFor.filter(l => l !== need);
+                                  setEditCardData({...editCardData, lookingFor: updated});
+                                }}
+                              />
+                              <span style={{color: '#C0C0C0', fontSize: '0.9rem'}}>{need}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
                     </div>
 
                     {/* Beta Readers List - Only for Writers */}
@@ -3909,7 +4031,6 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
                       </div>
                     )}
                   </div>
-                )}
 
                   {/* BOOK LISTS SECTION */}
                   <div className="book-list-section">
@@ -4060,6 +4181,48 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
                                       </div>
                                     </div>
                                   ))}
+                                </div>
+                              )}
+
+                              {/* Manual entry toggle */}
+                              {showManualBookEntry !== list.id ? (
+                                <div
+                                  style={{marginTop: '0.75rem', color: '#888', fontSize: '0.82rem', cursor: 'pointer', textDecoration: 'underline'}}
+                                  onClick={() => { setShowManualBookEntry(list.id); setManualBook({ title: '', author: '', coverUrl: '' }); }}
+                                >
+                                  Can't find it? Add manually
+                                </div>
+                              ) : (
+                                <div style={{marginTop: '0.75rem', background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.2)', borderRadius: '8px', padding: '1rem'}}>
+                                  <div style={{fontFamily: 'Cinzel', fontSize: '0.75rem', color: '#D4AF37', marginBottom: '0.75rem', letterSpacing: '0.08em'}}>ADD MANUALLY</div>
+                                  <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Book title *"
+                                    value={manualBook.title}
+                                    onChange={(e) => setManualBook({...manualBook, title: e.target.value})}
+                                    style={{marginBottom: '0.5rem', fontSize: '0.9rem'}}
+                                  />
+                                  <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Author"
+                                    value={manualBook.author}
+                                    onChange={(e) => setManualBook({...manualBook, author: e.target.value})}
+                                    style={{marginBottom: '0.5rem', fontSize: '0.9rem'}}
+                                  />
+                                  <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Cover image URL (optional)"
+                                    value={manualBook.coverUrl}
+                                    onChange={(e) => setManualBook({...manualBook, coverUrl: e.target.value})}
+                                    style={{marginBottom: '0.75rem', fontSize: '0.9rem'}}
+                                  />
+                                  <div style={{display: 'flex', gap: '0.5rem'}}>
+                                    <button className="btn" onClick={() => handleAddManualBook(list.id)} style={{fontSize: '0.8rem'}}>Add Book</button>
+                                    <button className="btn btn-secondary" onClick={() => setShowManualBookEntry(null)} style={{fontSize: '0.8rem'}}>Cancel</button>
+                                  </div>
                                 </div>
                               )}
                             </div>
