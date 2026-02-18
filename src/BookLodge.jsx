@@ -3909,6 +3909,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
                       </div>
                     )}
                   </div>
+                )}
 
                   {/* BOOK LISTS SECTION */}
                   <div className="book-list-section">
