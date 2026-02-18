@@ -1320,7 +1320,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
         .book-lodge {
           min-height: 100vh;
           background: #0a0a0a;
-          background-image: url('/lodge-bg.jpg.jpg');
+          background-image: url('/lodge-bg.jpg');
           background-size: cover;
           background-position: center;
           background-attachment: fixed;
@@ -2166,7 +2166,7 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
         <div className="header-content">
           <div className="branding">
             <img 
-              src="/The_BOOK_LODGE_Logo_PNG-BEST HIGHER RES TRANSPARENT.png" 
+              src="/booklodge-logo.png" 
               alt="The Book Lodge" 
               style={{
                 height: '65px',
