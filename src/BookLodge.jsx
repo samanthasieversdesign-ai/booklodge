@@ -337,15 +337,12 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
     }
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'anthropic-version': '2023-06-01'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
           system: getSystemPrompt(),
           messages: [
             ...messages.map(m => ({ role: m.role, content: m.content })),
