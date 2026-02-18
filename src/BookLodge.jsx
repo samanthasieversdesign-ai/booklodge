@@ -120,6 +120,15 @@ const BookLodgeApp = () => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Mobile menu state
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
@@ -2171,18 +2180,13 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
 
         /* Hamburger button - hidden on desktop */
         .hamburger-btn {
-          display: none;
-          background: transparent;
-          border: 1px solid rgba(212, 175, 55, 0.4);
-          border-radius: 6px;
-          padding: 0.4rem 0.7rem;
-          cursor: pointer;
-          color: #D4AF37;
-          font-size: 1.3rem;
-          line-height: 1;
-          position: absolute;
-          top: 1rem;
-          left: 1rem;
+          display: none !important;
+        }
+
+        @media (max-width: 768px) {
+          .hamburger-btn {
+            display: block !important;
+          }
         }
 
         /* Full-screen mobile menu */
@@ -2347,54 +2351,38 @@ Respect their expertise while offering fresh perspectives.` + lodgerContext;
             </div>
           )}
 
-          <div className="nav">
-            <a 
-              className={`nav-link ${currentRoom === 0 ? 'active' : ''}`}
-              onClick={() => setCurrentRoom(0)}
-            >
-              Concierge
-            </a>
-            <a 
-              className={`nav-link ${currentRoom === 1 ? 'active' : ''}`}
-              onClick={() => setCurrentRoom(1)}
-            >
-              Guest Room
-            </a>
-            <a 
-              className={`nav-link ${currentRoom === 2 ? 'active' : ''}`}
-              onClick={() => setCurrentRoom(2)}
-            >
-              Fireside Lounge
-            </a>
-            <a 
-              className={`nav-link ${currentRoom === 3 ? 'active' : ''}`}
-              onClick={() => setCurrentRoom(3)}
-            >
-              Library
-            </a>
-          </div>
+          {/* Nav - desktop only */}
+          {!isMobile && (
+            <div className="nav">
+              <a className={`nav-link ${currentRoom === 0 ? 'active' : ''}`} onClick={() => setCurrentRoom(0)}>Concierge</a>
+              <a className={`nav-link ${currentRoom === 1 ? 'active' : ''}`} onClick={() => setCurrentRoom(1)}>Guest Room</a>
+              <a className={`nav-link ${currentRoom === 2 ? 'active' : ''}`} onClick={() => setCurrentRoom(2)}>Fireside Lounge</a>
+              <a className={`nav-link ${currentRoom === 3 ? 'active' : ''}`} onClick={() => setCurrentRoom(3)}>Library</a>
+            </div>
+          )}
 
-          {/* Hamburger button - mobile only */}
-          <button 
-            className="hamburger-btn" 
-            onClick={() => setShowMobileMenu(true)}
-            style={{
-              position: 'fixed',
-              top: '1rem',
-              left: '1rem',
-              zIndex: 1001,
-              background: 'rgba(10,10,10,0.8)',
-              border: '1px solid rgba(212, 175, 55, 0.4)',
-              borderRadius: '6px',
-              padding: '0.4rem 0.7rem',
-              cursor: 'pointer',
-              color: '#D4AF37',
-              fontSize: '1.3rem',
-              lineHeight: 1
-            }}
-          >
-            ☰
-          </button>
+          {/* Hamburger button - mobile only, top left */}
+          {isMobile && (
+            <button
+              onClick={() => setShowMobileMenu(true)}
+              style={{
+                position: 'fixed',
+                top: '1.2rem',
+                left: '1rem',
+                zIndex: 1001,
+                background: 'transparent',
+                border: '1px solid rgba(212, 175, 55, 0.4)',
+                borderRadius: '6px',
+                padding: '0.5rem 0.8rem',
+                cursor: 'pointer',
+                color: '#D4AF37',
+                fontSize: '1.4rem',
+                lineHeight: 1
+              }}
+            >
+              ☰
+            </button>
+          )}
         </div>
       </div>
 
