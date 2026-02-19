@@ -462,9 +462,10 @@ const handleReservationComplete = async () => {
   const handleSaveRoom = async () => {
     if (!user) return;
     try {
-      const { error } = await supabase
+     const { error } = await supabase
         .from('profiles')
         .update({
+          name: user.name,
           genres: editCardData.genres,
           themes: editCardData.themes,
           looking_for: editCardData.lookingFor,
