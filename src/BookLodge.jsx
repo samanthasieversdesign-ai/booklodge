@@ -4807,7 +4807,7 @@ const handleSignIn = async () => {
                       fontSize: '0.8rem', color: '#C0C0C0', textTransform: 'uppercase',
                       letterSpacing: '0.15em', marginBottom: '0.75rem', fontFamily: 'Cinzel', textAlign: 'center'
                     }}>
-                      {user.userType === 'pro' ? (user.proRole || 'Industry Professional').toUpperCase() : user.userType.toUpperCase()}
+                      {(user.user_type || user.userType) === 'pro' ? (user.pro_role || user.proRole || 'Industry Professional').toUpperCase() : (user.user_type || user.userType || '').toUpperCase()}
                     </div>
                     
                     {user.genres && user.genres.length > 0 && (
