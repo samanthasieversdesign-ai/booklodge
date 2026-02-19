@@ -620,12 +620,8 @@ const handleReservationComplete = async () => {
   };
 
   // Logout/Reset (for testing)
-  const handleLogout = () => {
-    localStorage.removeItem('bookLodgeUser');
-    localStorage.removeItem('messageCount');
-    localStorage.removeItem('messageMonth');
-    localStorage.removeItem('bookLodgeCircles');
-    localStorage.removeItem('bookLodgeSilentEvents');
+const handleLogout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setConciergeMessages([]);
     setLoungeMessages([]);
@@ -637,18 +633,14 @@ const handleReservationComplete = async () => {
     setActiveCircleId(null);
     setActiveSilentEventId(null);
     setRoomData({
-      favoriteBooks: [],
-      wantToRead: [],
-      recommendations: [],
-      publishedWorks: [],
-      wips: [],
-      portfolio: [],
-      website: '',
-      socialLinks: { twitter: '', instagram: '', linkedin: '' },
-      uploadedFiles: [],
-      betaReaders: [],
-      lookingToMeet: ''
+      favoriteBooks: [], wantToRead: [], recommendations: [],
+      publishedWorks: [], wips: [], portfolio: [],
+      website: '', socialLinks: { twitter: '', instagram: '', linkedin: '' },
+      uploadedFiles: [], betaReaders: [], lookingToMeet: '',
+      shortStories: [], poetry: [], essays: []
     });
+    localStorage.removeItem('messageCount');
+    localStorage.removeItem('messageMonth');
   };
 
   // Sign In handler
