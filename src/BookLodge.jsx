@@ -652,57 +652,55 @@ const handleReservationComplete = async () => {
   };
 
   // Sign In handler
-  const handleSignIn = () => {
+const handleSignIn = async () => {
     setSignInError('');
     if (!signInData.email.trim() || !signInData.password.trim()) {
       setSignInError('Please enter your email and password.');
       return;
     }
 
-    // TODO (backend): Replace this localStorage lookup with an API call:
-    // POST /api/auth/login { email, password }
-    // → returns { user, token } on success, or 401 on failure
-    const savedUser = localStorage.getItem('bookLodgeUser');
-    if (!savedUser) {
-      setSignInError('No account found with that email. Please check your details or reserve a new room.');
-      return;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: signInData.email.trim(),
+        password: signInData.password,
+      });
+
+      if (error) {
+        setSignInError('Incorrect email or password. Please try again.');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      if (!profile) {
+        setSignInError('Account found but profile could not be loaded. Please contact support.');
+        return;
+      }
+
+      setUser(profile);
+      if (profile.room_data) setRoomData(profile.room_data);
+
+      if (profile.trial_start_date && !profile.is_paid) {
+        const trialStart = new Date(profile.trial_start_date);
+        const now = new Date();
+        const daysElapsed = Math.floor((now - trialStart) / (1000 * 60 * 60 * 24));
+        const remaining = TRIAL_DAYS - daysElapsed;
+        setTrialDaysRemaining(remaining > 0 ? remaining : 0);
+      }
+
+      setShowSignIn(false);
+      setSignInData({ email: '', password: '' });
+      setSignInError('');
+      setCurrentRoom(1);
+
+    } catch (err) {
+      console.error('Sign in error:', err);
+      setSignInError('Something went wrong. Please try again.');
     }
-
-    const userData = JSON.parse(savedUser);
-    if (userData.email.toLowerCase() !== signInData.email.trim().toLowerCase()) {
-      setSignInError('No account found with that email.');
-      return;
-    }
-    if (userData.password !== signInData.password) {
-      setSignInError('Incorrect password. Please try again.');
-      return;
-    }
-
-    // Successful sign-in
-    setUser(userData);
-    if (userData.room) setRoomData(userData.room);
-
-    const savedNominations = localStorage.getItem('bookLodgeNominations');
-    if (savedNominations) setNominations(JSON.parse(savedNominations));
-
-    const savedCircles = localStorage.getItem('bookLodgeCircles');
-    if (savedCircles) setReadingCircles(JSON.parse(savedCircles));
-
-    const savedSilentEvents = localStorage.getItem('bookLodgeSilentEvents');
-    if (savedSilentEvents) setSilentClubEvents(JSON.parse(savedSilentEvents));
-
-    if (userData.trialStartDate && !userData.isPaid) {
-      const trialStart = new Date(userData.trialStartDate);
-      const now = new Date();
-      const daysElapsed = Math.floor((now - trialStart) / (1000 * 60 * 60 * 24));
-      const remaining = TRIAL_DAYS - daysElapsed;
-      setTrialDaysRemaining(remaining > 0 ? remaining : 0);
-    }
-
-    setShowSignIn(false);
-    setSignInData({ email: '', password: '' });
-    setSignInError('');
-    setCurrentRoom(1);
   };
 
   // Forgot password handler
