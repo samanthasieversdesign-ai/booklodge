@@ -459,26 +459,40 @@ const handleReservationComplete = async () => {
   };
 
   // Guest Room functions
-  const handleSaveRoom = () => {
-    console.log('Attempting to save room data...');
+  const handleSaveRoom = async () => {
+    if (!user) return;
     try {
-      const updatedUser = { 
-        ...user, 
-        room: roomData,
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          genres: editCardData.genres,
+          themes: editCardData.themes,
+          looking_for: editCardData.lookingFor,
+          bio: editCardData.bio,
+          room_data: roomData,
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Save error:', error);
+        showToast('Unable to save. Please try again.');
+        return;
+      }
+
+      setUser(prev => ({
+        ...prev,
         genres: editCardData.genres,
         themes: editCardData.themes,
         lookingFor: editCardData.lookingFor,
-        bio: editCardData.bio
-      };
-      const dataString = JSON.stringify(updatedUser);
-      console.log('Data size:', (dataString.length / 1024).toFixed(2) + ' KB');
-      localStorage.setItem('bookLodgeUser', dataString);
-      setUser(updatedUser);
+        bio: editCardData.bio,
+        room: roomData
+      }));
       setIsEditingRoom(false);
-      console.log('Save successful!');
-    } catch (error) {
-      console.error('Error saving room:', error);
-      showToast('Unable to save - your data may be too large. Try using smaller images or fewer files.');
+      showToast('Room saved!');
+
+    } catch (err) {
+      console.error('Save error:', err);
+      showToast('Unable to save - please try again.');
     }
   };
 
